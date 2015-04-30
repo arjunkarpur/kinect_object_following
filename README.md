@@ -1,5 +1,4 @@
-# Arjun Karpur (amk3566)
-ROS Kinect Lab
+# ROS Object Following
 Package name: kinect_demo
 
 Two nodes included in package:
