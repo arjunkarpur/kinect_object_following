@@ -1,5 +1,5 @@
 # ROS Object Following
-Package name: ••kinect_demo••
+Package name: **kinect_demo**
 
 Two nodes included in package:
 
