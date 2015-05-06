@@ -1,7 +1,7 @@
 # ROS Object Following
 Package name: kinect_demo
 
-Two nodes included in package:
+Two nodes included in package
 
     - detect_cap - Detects cap using color (neon green) and follow cap. Does no filtering of point cloud and is often confused by noise in the masked point cloud (identifies some random areas as neon green and follows the point when cap isn't present). 
 
