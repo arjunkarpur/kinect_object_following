@@ -52,14 +52,6 @@ void cloud_sub(const sensor_msgs::PointCloud2ConstPtr& msg)
 
 		//state that a new cloud is available
 		new_cloud_available_flag = true;
-		 
-		/**PointCloudT::iterator myIterator;
-		for(myIterator = cloud->begin();  
-			myIterator != cloud->end();
-			myIterator++)
-		{
-			std::cout<<*myIterator<<" ";
-		}**/
 }
 
 PointCloudT::Ptr computeNeonVoxels(PointCloudT::Ptr in) {
@@ -124,8 +116,7 @@ int main (int argc, char** argv)
 		if (new_cloud_available_flag){
 			new_cloud_available_flag = false;
 			
-			// Voxel Grid reduces the computation time. Its a good idea to do it if you will be doing
-			//sequential processing or frame-by-frame
+			// Voxel Grid reduces the computation time.
 			// Create the filtering object: downsample the dataset using a leaf size of 1cm
 			pcl::VoxelGrid<PointT> vg;
 			pcl::PointCloud<PointT>::Ptr cloud_filtered (new pcl::PointCloud<PointT>);
@@ -146,7 +137,7 @@ int main (int argc, char** argv)
             // Create vector of clusters of points. Each value in vector is a vector of points in cluster
             std::vector<pcl::PointIndices> cluster_indices;
             pcl::EuclideanClusterExtraction<PointT> ec;
-            ec.setClusterTolerance(0.02);   // tolerance of 2 cm. TODO: tweak
+            ec.setClusterTolerance(0.02);   // tolerance of 2 cm between points
             ec.setMinClusterSize(100);
             ec.setMaxClusterSize(1500);
             ec.setSearchMethod(kdTree);
@@ -176,7 +167,7 @@ int main (int argc, char** argv)
                 cluster_clouds.push_back(curr_cloud);
             }
 
-            //TODO: fix! For now, finds closest to kinect, not to base
+            // Finds closest cluster to the kinect (not the base)
             PointCloudT::Ptr closest_cloud = cluster_clouds[0];
             double best_distance = 99999999;
             for (int i = 0; i < cluster_clouds.size(); i++) {
@@ -190,8 +181,8 @@ int main (int argc, char** argv)
                 }
             }
 
+
             neon_cloud = closest_cloud;
-    
 
 			//Publish the cloud with the neon cap
 			pcl::toROSMsg(*neon_cloud,cloud_ros);
@@ -207,6 +198,8 @@ int main (int argc, char** argv)
 			ROS_INFO("The centroid of the neon cap is: (%f, %f, %f)", 
                 centroid(0), centroid(1), centroid(2));
 
+
+            // Do transformation
             tf::StampedTransform transform;
             try {
                 if (robot == turtlebot) {
@@ -230,11 +223,13 @@ int main (int argc, char** argv)
             
             tf::Vector3 transformedVector = transform * centeroidV;
 
+            // Move base towards the transformed centroid
             double angle = atan2(transformedVector[1], transformedVector[0]);
             angle = angles::normalize_angle(angle);
             double distanceToTarget = sqrt(pow(transformedVector[0], 2) + pow(transformedVector[1], 2));
             geometry_msgs::Twist vel_msg;
 
+            // Check for proper distance away from target
             if (distanceToTarget < 5 && distanceToTarget > 1) {
                 ROS_INFO("Distane to target: %f m", distanceToTarget);
                 ROS_INFO("Angle: %f", angle);

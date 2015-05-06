@@ -41,14 +41,6 @@ void cloud_sub(const sensor_msgs::PointCloud2ConstPtr& msg)
 
 		//state that a new cloud is available
 		new_cloud_available_flag = true;
-		 
-		/**PointCloudT::iterator myIterator;
-		for(myIterator = cloud->begin();  
-			myIterator != cloud->end();
-			myIterator++)
-		{
-			std::cout<<*myIterator<<" ";
-		}**/
 }
 
 PointCloudT::Ptr computeNeonVoxels(PointCloudT::Ptr in) {
@@ -113,8 +105,7 @@ int main (int argc, char** argv)
 		if (new_cloud_available_flag){
 			new_cloud_available_flag = false;
 			
-			// Voxel Grid reduces the computation time. Its a good idea to do it if you will be doing
-			//sequential processing or frame-by-frame
+			// Voxel Grid reduces the computation time.
 			// Create the filtering object: downsample the dataset using a leaf size of 1cm
 			pcl::VoxelGrid<PointT> vg;
 			pcl::PointCloud<PointT>::Ptr cloud_filtered (new pcl::PointCloud<PointT>);
@@ -128,7 +119,7 @@ int main (int argc, char** argv)
 			//Send the filtered point cloud to be processed in order to get the neon blob
 			neon_cloud = computeNeonVoxels(cloud_filtered);
 
-		    //Publish the cloud with the neon cap
+		    //Publish the cloud with the neon cap (used for viewing cloud graphically)
 			pcl::toROSMsg(*neon_cloud,cloud_ros);
 			
 			//Set the frame ID to the first cloud we took in coz we want to replace that one
@@ -142,6 +133,8 @@ int main (int argc, char** argv)
 			ROS_INFO("The centroid of the neon cap is: (%f, %f, %f)", 
                 centroid(0), centroid(1), centroid(2));
 
+
+            // transform the centroid from the kinect to the base of the robot
             tf::StampedTransform transform;
             try {
                 if (robot == turtlebot) {
@@ -165,6 +158,7 @@ int main (int argc, char** argv)
             
             tf::Vector3 transformedVector = transform * centeroidV;
 
+            // Publish message to move towards transformed centroid
             double angle = atan2(transformedVector[1], transformedVector[0]);
             angle = angles::normalize_angle(angle);
             double distanceToTarget = sqrt(pow(transformedVector[0], 2) + pow(transformedVector[1], 2));
